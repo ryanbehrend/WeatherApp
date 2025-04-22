@@ -34,6 +34,8 @@
             this.favorite_locations_label = new System.Windows.Forms.Label();
             this.location_dropdown = new System.Windows.Forms.ComboBox();
             this.unit_dropdown = new System.Windows.Forms.ComboBox();
+            this.location_label = new System.Windows.Forms.Label();
+            this.temperature_label = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // city_or_zip_label
@@ -92,11 +94,33 @@
             this.unit_dropdown.Size = new System.Drawing.Size(75, 21);
             this.unit_dropdown.TabIndex = 5;
             // 
+            // location_label
+            // 
+            this.location_label.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.location_label.Location = new System.Drawing.Point(15, 80);
+            this.location_label.Name = "location_label";
+            this.location_label.Size = new System.Drawing.Size(357, 42);
+            this.location_label.TabIndex = 6;
+            this.location_label.Text = "City Name";
+            this.location_label.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // temperature_label
+            // 
+            this.temperature_label.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.temperature_label.Location = new System.Drawing.Point(22, 130);
+            this.temperature_label.Name = "temperature_label";
+            this.temperature_label.Size = new System.Drawing.Size(350, 31);
+            this.temperature_label.TabIndex = 7;
+            this.temperature_label.Text = "N/A";
+            this.temperature_label.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // WeatherApp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(384, 411);
+            this.Controls.Add(this.temperature_label);
+            this.Controls.Add(this.location_label);
             this.Controls.Add(this.unit_dropdown);
             this.Controls.Add(this.location_dropdown);
             this.Controls.Add(this.favorite_locations_label);
@@ -118,6 +142,8 @@
         private System.Windows.Forms.Label favorite_locations_label;
         private System.Windows.Forms.ComboBox location_dropdown;
         private System.Windows.Forms.ComboBox unit_dropdown;
+        private System.Windows.Forms.Label location_label;
+        private System.Windows.Forms.Label temperature_label;
     }
 }
 
