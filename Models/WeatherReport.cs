@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace FinalProject
+namespace FinalProject.Models
 {
     public class WeatherReport
     {
-        public double City { get; set; }
+        public string City { get; set; }
         public double Temperature { get; set; }
         public double MinTemperature { get; set; }
         public double MaxTemperature { get; set; }

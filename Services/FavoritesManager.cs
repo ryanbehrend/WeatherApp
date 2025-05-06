@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.IO;
+using FinalProject.Models;
 
 namespace FinalProject.Services
 {
@@ -16,17 +18,21 @@ namespace FinalProject.Services
         {
             _filePath = filePath;
         }
+
         public IReadOnlyList<Location> GetFavorites() => _favorites.AsReadOnly();
+
         public void AddFavorite(Location location)
         {
-            if (_favorites.Any(f => f.GetQuereyString() == location.GetQuereyString()))
+            if (_favorites.Any(f => f.GetQueryString() == location.GetQueryString()))
                 return;
             _favorites.Add(location);
         }
+
         public void RemoveFavorite(Location location)
         {
-            _favorites.RemoveAll(f => f.GetQuereyString() == location.GetQuereyString());
+            _favorites.RemoveAll(f => f.GetQueryString() == location.GetQueryString());
         }
+
         public void Save()
         {
             try
@@ -49,6 +55,7 @@ namespace FinalProject.Services
                 Console.Error.WriteLine($"Failed to save favorites: {ex.Message}");
             }
         }
+
         public void Load()
         {
             if (!File.Exists(_filePath))
@@ -77,7 +84,6 @@ namespace FinalProject.Services
             }
             catch (Exception ex)
             {
-                // handle or log as needed
                 Console.Error.WriteLine($"Failed to load favorites: {ex.Message}");
             }
         }

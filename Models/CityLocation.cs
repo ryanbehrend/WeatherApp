@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinalProject
+namespace FinalProject.Models
 {
     public class CityLocation : Location
     {
@@ -13,6 +13,6 @@ namespace FinalProject
             City = city;
         }
 
-        public override string GetQuereyString() => $"q={City},{Country}";
+        public override string GetQueryString() => $"q={City},{Country}";
     }
 }

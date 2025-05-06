@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinalProject
+namespace FinalProject.Models
 {
     public abstract class Location
     {
@@ -17,6 +17,6 @@ namespace FinalProject
             Country = country;
         }
 
-        public abstract string GetQuereyString();
+        public abstract string GetQueryString();
     }
 }

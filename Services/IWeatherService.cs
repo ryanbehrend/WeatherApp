@@ -4,8 +4,9 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FinalProject.Models;
 
-namespace FinalProject
+namespace FinalProject.Services
 {
     public interface IWeatherService
     {

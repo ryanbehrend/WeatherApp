@@ -94,6 +94,9 @@
   <ItemGroup>
     <Compile Include="Configuration\AppConfig.cs" />
     <Compile Include="Controllers\WeatherAppController.cs" />
+    <Compile Include="ForecastForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Models\CityLocation.cs" />
     <Compile Include="Services\FavoritesManager.cs" />
     <Compile Include="Services\IFavoritesManager.cs" />

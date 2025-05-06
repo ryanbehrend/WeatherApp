@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinalProject
+namespace FinalProject.Models
 {
     public class ZipCodeLocation : Location
     {
@@ -13,6 +13,6 @@ namespace FinalProject
             ZipCode = zipCode;
         }
 
-        public override string GetQuereyString() => $"zip={ZipCode},{Country}";
+        public override string GetQueryString() => $"zip={ZipCode},{Country}";
     }
 }
