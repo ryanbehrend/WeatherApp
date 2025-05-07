@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FinalProject.Models
 {
@@ -10,9 +6,13 @@ namespace FinalProject.Models
     {
         public CityLocation(string city, string country = "US") : base(country)
         {
+            if (string.IsNullOrWhiteSpace(city))
+                throw new ArgumentException("City must be provided", nameof(city));
             City = city;
         }
 
         public override string GetQueryString() => $"q={City},{Country}";
+
+        public override string ToString() => City;
     }
 }

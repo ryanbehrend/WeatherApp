@@ -1,34 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using FinalProject.Controllers;
-using FinalProject.Services;
 using FinalProject.Models;
-using FinalProject.UI;
 
-namespace FinalProject
+namespace FinalProject.UI
 {
     public partial class WeatherApp : Form
     {
         private readonly WeatherAppController _controller;
+
         public WeatherApp(WeatherAppController controller)
         {
             InitializeComponent();
-            _controller = controller;
+            _controller = controller ?? throw new ArgumentNullException(nameof(controller));
+
+            search_button.Click += Search_button_Click;
+            refresh_button.Click += Refresh_button_Click;
+            five_day_forecast_button.Click += Five_day_forecast_button_Click;
+            add_to_favorites_button.Click += Add_to_favorites_button_Click;
+            remove_from_favorites_button.Click += Remove_from_favorites_button_Click;
+            location_dropdown.SelectedIndexChanged += Location_dropdown_SelectedIndexChanged;
+
             ReloadFavoritesDropdown();
         }
 
-        private void search_button_Click(object sender, EventArgs e)
+        private async void Search_button_Click(object sender, EventArgs e)
         {
             try
             {
-                var report = _controller.Search(city_or_zip_textbox.Text);
+                var report = await _controller.SearchAsync(city_or_zip_textbox.Text);
                 DisplayWeather(report);
             }
             catch (Exception ex)
@@ -37,26 +38,11 @@ namespace FinalProject
             }
         }
 
-        private void add_to_favorites_button_Click(object sender, EventArgs e)
-        {
-            _controller.AddToFavorites();
-            ReloadFavoritesDropdown();
-        }
-
-        private void remove_from_favorites_button_Click(object sender, EventArgs e)
-        {
-            if (location_dropdown.SelectedItem is Location location)
-            {
-                _controller.RemoveFromFavorites(location);
-                ReloadFavoritesDropdown();
-            }
-        }
-
-        private void refresh_button_Click(object sender, EventArgs e)
+        private async void Refresh_button_Click(object sender, EventArgs e)
         {
             try
             {
-                var report = _controller.Refresh();
+                var report = await _controller.RefreshAsync();
                 DisplayWeather(report);
             }
             catch (Exception ex)
@@ -65,42 +51,69 @@ namespace FinalProject
             }
         }
 
-        private void five_day_forecast_button_Click(object sender, EventArgs e)
+        private async void Five_day_forecast_button_Click(object sender, EventArgs e)
         {
             try
             {
-                List<WeatherReport> forecast = _controller.Get5DayForecast();
-                var f = new ForecastForm(forecast);
+                List<WeatherReport> forecast = await _controller.Get5DayForecastAsync();
+                var form = new ForecastForm(forecast);
+                form.Show();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Forecast failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void Location_dropdown_SelectedIndexChanged(object sender, EventArgs e)
+
+        private void Add_to_favorites_button_Click(object sender, EventArgs e)
         {
-            if (location_dropdown.SelectedItem is Location location)
+            _controller.AddCurrentToFavorites();
+            ReloadFavoritesDropdown();
+        }
+
+        private void Remove_from_favorites_button_Click(object sender, EventArgs e)
+        {
+            if (location_dropdown.SelectedItem is Location loc)
             {
-                string input = !string.IsNullOrEmpty(location.ZipCode) ? location.ZipCode : location.City;
-                var report = _controller.Search(input);
-                DisplayWeather(report);
+                _controller.RemoveFromFavorites(loc);
+                ReloadFavoritesDropdown();
             }
         }
+
+        private async void Location_dropdown_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (location_dropdown.SelectedItem is Location loc)
+            {
+                string input = !string.IsNullOrWhiteSpace(loc.ZipCode) ? loc.ZipCode : loc.City;
+                try
+                {
+                    var report = await _controller.SearchAsync(input);
+                    DisplayWeather(report);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to load favorite: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
         private void ReloadFavoritesDropdown()
         {
             var favorites = _controller.GetFavorites();
             location_dropdown.DataSource = null;
             location_dropdown.DataSource = favorites;
         }
+
         private void DisplayWeather(WeatherReport report)
         {
-            location_label.Text = report.City.ToString();
-            temperature_label.Text = $"{report.Temperature} °F";
-            min_temp_label.Text = $"{report.MinTemperature} °F";
-            max_temp_label.Text = $"{report.MaxTemperature} °F";
+            location_label.Text = report.City;
+            temperature_label.Text = $"{report.Temperature:F1}°";
+            min_temp_label.Text = $"{report.MinTemperature:F1}°";
+            max_temp_label.Text = $"{report.MaxTemperature:F1}°";
             condition_label.Text = report.Condition;
-            humidity_label.Text = $"{report.Humidity}%";
-            wind_speed_label.Text = $"{report.WindSpeed} mph";
+            humidity_label.Text = $"{report.Humidity:F1}%";
+            wind_speed_label.Text = $"{report.WindSpeed:F1}";
+            precipitation_label.Text = $"{report.Precipitation}";
         }
     }
 }

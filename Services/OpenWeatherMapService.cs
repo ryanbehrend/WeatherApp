@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 using FinalProject.Models;
-using FinalProject.Services;
-using FinalProject.Controllers;
 
 namespace FinalProject.Services
 {
@@ -23,70 +21,81 @@ namespace FinalProject.Services
             };
         }
 
-        public WeatherReport GetCurrentWeather(Location location)
+        public async Task<WeatherReport> GetCurrentWeatherAsync(Location location)
         {
-            var query = BuildLocationQuery(location);
-            var url = $"weather?{query}&appid={_apiKey}&units=imperial";
-            var json = _http.GetStringAsync(url).Result;
-            var doc = JsonDocument.Parse(json);
+            var url = $"weather?{location.GetQueryString()}&appid={_apiKey}&units=imperial";
+            HttpResponseMessage response = await _http.GetAsync(url).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
 
-            var root = doc.RootElement;
-            var city = doc.RootElement.GetProperty("city").GetProperty("name").GetString();
-            var main = root.GetProperty("main");
-            var weather = root.GetProperty("weather")[0];
-            var wind = root.GetProperty("wind");
-
-            return new WeatherReport
+            string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            using (JsonDocument doc = JsonDocument.Parse(json))
             {
-                City = city,
-                Temperature = main.GetProperty("temp").GetDouble(),
-                MinTemperature = main.GetProperty("temp_min").GetDouble(),
-                MaxTemperature = main.GetProperty("temp_max").GetDouble(),
-                Humidity = main.GetProperty("humidity").GetInt32(),
-                WindSpeed = wind.GetProperty("speed").GetDouble(),
-                Condition = weather.GetProperty("description").GetString(),
-                Precipitation = root.TryGetProperty("rain", out var rain) ? rain.GetProperty("1h").GetDouble().ToString() : "0"
-            };
-        }
+                JsonElement root = doc.RootElement;
+                JsonElement main = root.GetProperty("main");
+                JsonElement weather = root.GetProperty("weather")[0];
+                JsonElement wind = root.GetProperty("wind");
 
-        public List<WeatherReport> Get5DayForecast(Location location)
-        {
-            var query = BuildLocationQuery(location);
-            var url = $"forecast?{query}&appid={_apiKey}&units=imperial";
-            var json = _http.GetStringAsync(url).Result;
-            var doc = JsonDocument.Parse(json);
-
-            var list = doc.RootElement.GetProperty("list").EnumerateArray();
-            var city = doc.RootElement.GetProperty("city").GetProperty("name").GetString();
-            var results = new List<WeatherReport>();
-
-            foreach (var item in list)
-            {
-                var main = item.GetProperty("main");
-                var weather = item.GetProperty("weather")[0];
-                var wind = item.GetProperty("wind");
-
-                results.Add(new WeatherReport
+                return new WeatherReport
                 {
-                    City = city,
+                    City = root.GetProperty("name").GetString(),
+                    DateTime = DateTimeOffset
+                                              .FromUnixTimeSeconds(root.GetProperty("dt").GetInt64())
+                                              .DateTime,
                     Temperature = main.GetProperty("temp").GetDouble(),
+                    FeelsLikeTemperature = main.GetProperty("feels_like").GetDouble(),
                     MinTemperature = main.GetProperty("temp_min").GetDouble(),
                     MaxTemperature = main.GetProperty("temp_max").GetDouble(),
                     Humidity = main.GetProperty("humidity").GetInt32(),
                     WindSpeed = wind.GetProperty("speed").GetDouble(),
                     Condition = weather.GetProperty("description").GetString(),
-                    Precipitation = item.TryGetProperty("rain", out var rain) ? rain.GetProperty("3h").GetDouble().ToString() : "0"
-                });
+                    Precipitation = root.TryGetProperty("rain", out JsonElement rain)
+                                              ? rain.GetProperty("1h").GetDouble().ToString()
+                                              : "0"
+                };
             }
-
-            return results;
         }
 
-        private string BuildLocationQuery(Location loc)
+        public async Task<List<WeatherReport>> Get5DayForecastAsync(Location location)
         {
-            return !string.IsNullOrWhiteSpace(loc.ZipCode)
-                ? $"zip={loc.ZipCode},{loc.Country}"
-                : $"q={loc.City},{loc.Country}";
+            var url = $"forecast?{location.GetQueryString()}&appid={_apiKey}&units=imperial";
+            HttpResponseMessage response = await _http.GetAsync(url).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            using (JsonDocument doc = JsonDocument.Parse(json))
+            {
+                JsonElement root = doc.RootElement;
+                JsonElement listElem = root.GetProperty("list");
+                string cityName = root.GetProperty("city").GetProperty("name").GetString();
+                var results = new List<WeatherReport>();
+
+                foreach (JsonElement item in listElem.EnumerateArray())
+                {
+                    JsonElement main = item.GetProperty("main");
+                    JsonElement weather = item.GetProperty("weather")[0];
+                    JsonElement wind = item.GetProperty("wind");
+
+                    results.Add(new WeatherReport
+                    {
+                        City = cityName,
+                        DateTime = DateTimeOffset
+                                                  .FromUnixTimeSeconds(item.GetProperty("dt").GetInt64())
+                                                  .DateTime,
+                        Temperature = main.GetProperty("temp").GetDouble(),
+                        FeelsLikeTemperature = main.GetProperty("feels_like").GetDouble(),
+                        MinTemperature = main.GetProperty("temp_min").GetDouble(),
+                        MaxTemperature = main.GetProperty("temp_max").GetDouble(),
+                        Humidity = main.GetProperty("humidity").GetInt32(),
+                        WindSpeed = wind.GetProperty("speed").GetDouble(),
+                        Condition = weather.GetProperty("description").GetString(),
+                        Precipitation = item.TryGetProperty("rain", out JsonElement rain)
+                                                  ? rain.GetProperty("3h").GetDouble().ToString()
+                                                  : "0"
+                    });
+                }
+
+                return results;
+            }
         }
     }
 }

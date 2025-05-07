@@ -43,21 +43,27 @@ namespace FinalProject.UI
             });
             _grid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "Cond",
+                HeaderText = "Condition",
                 DataPropertyName = nameof(WeatherReport.Condition),
-                Width = 120
+                Width = 90
             });
             _grid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "Humid (%)",
+                HeaderText = "Humidity (%)",
                 DataPropertyName = nameof(WeatherReport.Humidity),
                 Width = 70
             });
             _grid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "Wind (mph)",
+                HeaderText = "Wind Speed (mph)",
                 DataPropertyName = nameof(WeatherReport.WindSpeed),
                 Width = 70
+            });
+            _grid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Precipitation (in)",
+                DataPropertyName = nameof(WeatherReport.Precipitation),
+                Width = 90
             });
 
             Controls.Add(_grid);

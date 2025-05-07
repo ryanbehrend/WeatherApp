@@ -1,59 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
 using FinalProject.Models;
 
 namespace FinalProject.Services
 {
-    internal class FavoritesManager : IFavoritesManager
+    public class FavoritesManager : IFavoritesManager
     {
         private readonly string _filePath;
         private readonly List<Location> _favorites = new List<Location>();
 
         public FavoritesManager(string filePath)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentException("Favorites file path required", nameof(filePath));
             _filePath = filePath;
         }
 
         public IReadOnlyList<Location> GetFavorites() => _favorites.AsReadOnly();
 
-        public void AddFavorite(Location location)
+        public void AddFavorite(Location loc)
         {
-            if (_favorites.Any(f => f.GetQueryString() == location.GetQueryString()))
+            if (_favorites.Any(f => f.GetQueryString() == loc.GetQueryString()))
                 return;
-            _favorites.Add(location);
+            _favorites.Add(loc);
         }
 
-        public void RemoveFavorite(Location location)
+        public void RemoveFavorite(Location loc)
         {
-            _favorites.RemoveAll(f => f.GetQueryString() == location.GetQueryString());
-        }
-
-        public void Save()
-        {
-            try
-            {
-                var raw = _favorites
-                    .Select(loc => new RawLocation
-                    {
-                        City = loc.City,
-                        ZipCode = loc.ZipCode,
-                        Country = loc.Country
-                    })
-                    .ToList();
-
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                var json = JsonSerializer.Serialize(raw, options);
-                File.WriteAllText(_filePath, json);
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Failed to save favorites: {ex.Message}");
-            }
+            _favorites.RemoveAll(f => f.GetQueryString() == loc.GetQueryString());
         }
 
         public void Load()
@@ -63,28 +40,44 @@ namespace FinalProject.Services
 
             try
             {
-                var json = File.ReadAllText(_filePath);
-                var items = JsonSerializer.Deserialize<List<RawLocation>>(json);
-                if (items == null) return;
-
+                string json = File.ReadAllText(_filePath);
+                var rawList = JsonSerializer.Deserialize<List<RawLocation>>(json) ?? new List<RawLocation>();
                 _favorites.Clear();
-                foreach (var raw in items)
+
+                foreach (var raw in rawList)
                 {
-                    Location loc;
-                    if (!string.IsNullOrWhiteSpace(raw.ZipCode))
-                    {
-                        loc = new ZipCodeLocation(raw.ZipCode, raw.Country);
-                    }
-                    else
-                    {
-                        loc = new CityLocation(raw.City, raw.Country);
-                    }
+                    Location loc = !string.IsNullOrWhiteSpace(raw.ZipCode)
+                        ? (Location)new ZipCodeLocation(raw.ZipCode, raw.Country)
+                        : new CityLocation(raw.City, raw.Country);
                     _favorites.Add(loc);
                 }
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Failed to load favorites: {ex.Message}");
+            }
+        }
+
+        public void Save()
+        {
+            try
+            {
+                var rawList = _favorites
+                    .Select(loc => new RawLocation
+                    {
+                        City = loc.City,
+                        ZipCode = loc.ZipCode,
+                        Country = loc.Country
+                    })
+                    .ToList();
+
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string json = JsonSerializer.Serialize(rawList, options);
+                File.WriteAllText(_filePath, json);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Failed to save favorites: {ex.Message}");
             }
         }
 
