@@ -7,7 +7,6 @@ namespace FinalProject.Models
         public string City { get; set; }
         public DateTime DateTime { get; set; }
         public double Temperature { get; set; }
-        public double FeelsLikeTemperature { get; set; }
         public double MinTemperature { get; set; }
         public double MaxTemperature { get; set; }
         public int Humidity { get; set; }

@@ -11,10 +11,12 @@ namespace FinalProject.Services
     {
         private readonly string _apiKey;
         private readonly HttpClient _http;
+        public string _units { get; set; }
 
-        public OpenWeatherMapService(string apiKey)
+        public OpenWeatherMapService(string apiKey, string units = "imperial")
         {
             _apiKey = apiKey;
+            _units = units;
             _http = new HttpClient
             {
                 BaseAddress = new Uri("https://api.openweathermap.org/data/2.5/")
@@ -23,7 +25,7 @@ namespace FinalProject.Services
 
         public async Task<WeatherReport> GetCurrentWeatherAsync(Location location)
         {
-            var url = $"weather?{location.GetQueryString()}&appid={_apiKey}&units=imperial";
+            var url = $"weather?{location.GetQueryString()}&appid={_apiKey}&units={_units}";
             HttpResponseMessage response = await _http.GetAsync(url).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
@@ -35,14 +37,13 @@ namespace FinalProject.Services
                 JsonElement weather = root.GetProperty("weather")[0];
                 JsonElement wind = root.GetProperty("wind");
 
+                Logger.Log($"Retrieved current weather for {location} at {DateTime.Now:HH:mm}");
+
                 return new WeatherReport
                 {
                     City = root.GetProperty("name").GetString(),
-                    DateTime = DateTimeOffset
-                                              .FromUnixTimeSeconds(root.GetProperty("dt").GetInt64())
-                                              .DateTime,
+                    DateTime = DateTimeOffset.FromUnixTimeSeconds(root.GetProperty("dt").GetInt64()).DateTime,
                     Temperature = main.GetProperty("temp").GetDouble(),
-                    FeelsLikeTemperature = main.GetProperty("feels_like").GetDouble(),
                     MinTemperature = main.GetProperty("temp_min").GetDouble(),
                     MaxTemperature = main.GetProperty("temp_max").GetDouble(),
                     Humidity = main.GetProperty("humidity").GetInt32(),
@@ -57,7 +58,7 @@ namespace FinalProject.Services
 
         public async Task<List<WeatherReport>> Get5DayForecastAsync(Location location)
         {
-            var url = $"forecast?{location.GetQueryString()}&appid={_apiKey}&units=imperial";
+            var url = $"forecast?{location.GetQueryString()}&appid={_apiKey}&units={_units}";
             HttpResponseMessage response = await _http.GetAsync(url).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
@@ -71,6 +72,11 @@ namespace FinalProject.Services
 
                 foreach (JsonElement item in listElem.EnumerateArray())
                 {
+                    DateTime dt = DateTimeOffset.FromUnixTimeSeconds(item.GetProperty("dt").GetInt64()).DateTime;
+
+                    if (dt.TimeOfDay == TimeSpan.Zero)
+                        continue;
+
                     JsonElement main = item.GetProperty("main");
                     JsonElement weather = item.GetProperty("weather")[0];
                     JsonElement wind = item.GetProperty("wind");
@@ -78,24 +84,24 @@ namespace FinalProject.Services
                     results.Add(new WeatherReport
                     {
                         City = cityName,
-                        DateTime = DateTimeOffset
-                                                  .FromUnixTimeSeconds(item.GetProperty("dt").GetInt64())
-                                                  .DateTime,
+                        DateTime = dt,
                         Temperature = main.GetProperty("temp").GetDouble(),
-                        FeelsLikeTemperature = main.GetProperty("feels_like").GetDouble(),
                         MinTemperature = main.GetProperty("temp_min").GetDouble(),
                         MaxTemperature = main.GetProperty("temp_max").GetDouble(),
                         Humidity = main.GetProperty("humidity").GetInt32(),
                         WindSpeed = wind.GetProperty("speed").GetDouble(),
                         Condition = weather.GetProperty("description").GetString(),
-                        Precipitation = item.TryGetProperty("rain", out JsonElement rain)
-                                                  ? rain.GetProperty("3h").GetDouble().ToString()
-                                                  : "0"
+                        Precipitation = item.TryGetProperty("rain", out JsonElement rainEl)
+                                            && rainEl.TryGetProperty("3h", out JsonElement r)
+                                            ? r.GetDouble().ToString()
+                                            : "0"
                     });
                 }
+                Logger.Log($"Retrieved 5-day forecast for {location} at {DateTime.Now:HH:mm}");
 
                 return results;
             }
         }
+
     }
 }

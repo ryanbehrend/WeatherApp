@@ -21,6 +21,9 @@ namespace FinalProject.UI
             add_to_favorites_button.Click += Add_to_favorites_button_Click;
             remove_from_favorites_button.Click += Remove_from_favorites_button_Click;
             location_dropdown.SelectedIndexChanged += Location_dropdown_SelectedIndexChanged;
+            unit_dropdown.SelectedIndexChanged += Unit_dropdown_SelectedIndexChanged;
+
+            unit_dropdown.SelectedIndex = 0;
 
             ReloadFavoritesDropdown();
         }
@@ -44,6 +47,10 @@ namespace FinalProject.UI
             {
                 var report = await _controller.RefreshAsync();
                 DisplayWeather(report);
+            }
+            catch (InvalidOperationException)
+            {
+                return;
             }
             catch (Exception ex)
             {
@@ -94,6 +101,35 @@ namespace FinalProject.UI
                 {
                     MessageBox.Show($"Failed to load favorite: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+
+        private async void Unit_dropdown_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selected = unit_dropdown.SelectedItem.ToString();
+            string units;
+
+            if (selected == "Celsius")
+                units = "metric";
+            else if (selected == "Kelvin")
+                units = "standard";
+            else
+                units = "imperial";
+
+            _controller.ChangeUnits(units);
+
+            try
+            {
+                var report = await _controller.RefreshAsync();
+                DisplayWeather(report);
+            }
+            catch (InvalidOperationException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Couldn’t refresh: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

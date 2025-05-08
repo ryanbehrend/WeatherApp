@@ -32,9 +32,7 @@ namespace FinalProject.Controllers
             else
                 _currentLocation = new CityLocation(cityOrZip);
 
-            return await _weatherService
-                .GetCurrentWeatherAsync(_currentLocation)
-                .ConfigureAwait(false);
+            return await _weatherService.GetCurrentWeatherAsync(_currentLocation).ConfigureAwait(false);
         }
 
         public async Task<WeatherReport> RefreshAsync()
@@ -42,9 +40,7 @@ namespace FinalProject.Controllers
             if (_currentLocation == null)
                 throw new InvalidOperationException("No location to refresh; call SearchAsync first.");
 
-            return await _weatherService
-                .GetCurrentWeatherAsync(_currentLocation)
-                .ConfigureAwait(false);
+            return await _weatherService.GetCurrentWeatherAsync(_currentLocation).ConfigureAwait(false);
         }
 
         public async Task<List<WeatherReport>> Get5DayForecastAsync()
@@ -52,9 +48,7 @@ namespace FinalProject.Controllers
             if (_currentLocation == null)
                 throw new InvalidOperationException("No location selected; call SearchAsync first.");
 
-            return await _weatherService
-                .Get5DayForecastAsync(_currentLocation)
-                .ConfigureAwait(false);
+            return await _weatherService.Get5DayForecastAsync(_currentLocation).ConfigureAwait(false);
         }
 
         public void AddCurrentToFavorites()
@@ -71,6 +65,12 @@ namespace FinalProject.Controllers
 
             _favoritesManager.RemoveFavorite(location);
             _favoritesManager.Save();
+        }
+
+        public void ChangeUnits(string units)
+        {
+            if (_weatherService is OpenWeatherMapService ows)
+                ows._units = units;
         }
 
         public IReadOnlyList<Location> GetFavorites() => _favoritesManager.GetFavorites();

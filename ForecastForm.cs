@@ -12,8 +12,8 @@ namespace FinalProject.UI
         public ForecastForm(List<WeatherReport> forecast)
         {
             Text = "5-Day Forecast";
-            Width = 600;
-            Height = 400;
+            Width = 687;
+            Height = 372;
             StartPosition = FormStartPosition.CenterParent;
 
             _grid = new DataGridView
@@ -23,6 +23,12 @@ namespace FinalProject.UI
                 AutoGenerateColumns = false,
                 AllowUserToAddRows = false
             };
+            _grid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Day",
+                DataPropertyName = nameof(WeatherReport.DateTime),
+                Width = 110
+            });
             _grid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText = "Temp",

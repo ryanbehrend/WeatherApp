@@ -108,11 +108,15 @@
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
+    <Compile Include="Services\Logger.cs" />
     <Compile Include="Services\OpenWeatherMapService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\WeatherReport.cs" />
     <Compile Include="Models\ZipCodeLocation.cs" />
+    <EmbeddedResource Include="ForecastForm.resx">
+      <DependentUpon>ForecastForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>
